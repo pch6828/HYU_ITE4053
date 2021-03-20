@@ -218,27 +218,38 @@ def main(argv):
         print('Accuracy for Training Dataset = %.2f%%' % (vectorwise_result[3]))
         print('Accuracy for Testing Dataset  = %.2f%%' % (vectorwise_result[4]))
     elif mode == 'alpha':
-        alpha = 0.01
+        alpha_range = 1
+        optimized_range = None
         optimized_alpha = None
         optimized_accracy = 0
-        print('Exhaustive Search the Best Alpha Value...')
-        while alpha <= 1:
+        print('Search the Best Alpha Range...')
+
+        for i in range(5):
+            alpha_range/=10
+            vectorwise_w = np.array([r1, r2])
+            vectorwise_b = r3
+            vectorwise_result = vectorwise_training(train_x, train_y, test_x, test_y, k, alpha_range, vectorwise_w, vectorwise_b, False)
+            if optimized_accracy < vectorwise_result[3]:
+                optimized_accracy = vectorwise_result[3]
+                optimized_range = alpha_range
+                optimized_alpha = alpha_range
+        
+        print('Search the Best Alpha Value...')
+        for i in range(1, 10):
+            alpha = optimized_range*i
             vectorwise_w = np.array([r1, r2])
             vectorwise_b = r3
             vectorwise_result = vectorwise_training(train_x, train_y, test_x, test_y, k, alpha, vectorwise_w, vectorwise_b, False)
-            print('Alpha : ', alpha)
-            print('Accuracy for Training Dataset = %.2f%%' % (vectorwise_result[3]))
             if optimized_accracy < vectorwise_result[3]:
                 optimized_accracy = vectorwise_result[3]
                 optimized_alpha = alpha
-            alpha += 0.005
         print('----------------RESULT----------------')
         print('Best Alpha : ', optimized_alpha)
     else:
         print('Training with Element-wise Implementation...')
         elementwise_result = elementwise_training(train_x, train_y, test_x, test_y, k, 0.01, elementwise_w, elementwise_b, False)
         print('----------------RESULT----------------')
-        if mode == 'all':
+        if mode == 'compare_all':
             print('Estimated W = ',elementwise_result[0])
             print('Estimated B = ',elementwise_result[1])
             print('Running Time = %f sec' % (elementwise_result[2]))
@@ -256,7 +267,7 @@ def main(argv):
         print('Training with Vector-wise Implementation...')
         vectorwise_result = vectorwise_training(train_x, train_y, test_x, test_y, k, 0.01, vectorwise_w, vectorwise_b, False)
         print('----------------RESULT----------------')
-        if mode == 'all':
+        if mode == 'compare_all':
             print('Estimated W = ',vectorwise_result[0])
             print('Estimated B = ',vectorwise_result[1])
             print('Running Time = %f sec' % (vectorwise_result[2]))
