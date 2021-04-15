@@ -26,13 +26,27 @@ def generate_dataset(num_train, num_test):
 
     return train_x, train_y, test_x, test_y
 
+def output_process(x, y, filename):
+    file = open(filename, mode='w')
+
+    for i in range(len(y)):
+        for xi_j in x[i]:
+            file.write(str(xi_j))
+            file.write(str('\t'))
+        file.write(str(y[i]))
+        file.write('\n')
+
+    file.close()
+
 def main(argv):
     m = int(argv[1])
     n = int(argv[2])
-
+    train_filename = argv[3]
+    test_filename = argv[4]
     train_x, train_y, test_x, test_y = generate_dataset(m, n)
     
-
+    output_process(train_x, train_y, train_filename)
+    output_process(test_x, test_y, test_filename)
 
 if __name__ == '__main__':
     main(sys.argv)
