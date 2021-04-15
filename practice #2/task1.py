@@ -3,6 +3,23 @@ import time
 import random
 import numpy as np
 
+def read_dataset(filename):
+    file = open(filename)
+    x = []
+    y = []
+
+    while True:
+        line = file.readline()
+        if not line:
+            break
+        row = list(map(float, line.split('\t')))
+
+        x.append(row[:-1])
+        y.append(row[-1])
+
+    file.close()
+    return x, y
+
 def cross_entropy_loss(y_, y):
     return -(y*np.log(y_+1e-10)+((1-y)*np.log(1-y_+1e-10)))
 
@@ -78,24 +95,27 @@ def train_and_test(train_x, train_y, test_x, test_y, iteration, alpha, w, b, log
     return w, b, training_time, test_time, train_accuracy, test_accuracy
 
 def main(argv):
-    m = int(argv[1])
-    n = int(argv[2])
+    train_filename = argv[1]
+    test_filename = argv[2]
     k = int(argv[3])
+    
     r1 = random.uniform(-1,1)
     r2 = random.uniform(-1,1)
     r3 = random.uniform(-1,1)
-    vectorwise_w = np.array([r1, r2])
-    vectorwise_b = r3
-    train_x, train_y, test_x, test_y = generate_dataset(m, n)
+    w = np.array([r1, r2])
+    b = r3
+
+    train_x, train_y = read_dataset(train_filename)
+    test_x, test_y = read_dataset(test_filename)
     
-    vectorwise_result = train_and_test(train_x, train_y, test_x, test_y, k, 0.01, vectorwise_w, vectorwise_b, False)
+    result = train_and_test(train_x, train_y, test_x, test_y, k, 0.01, w, b, False)
     print('----------------RESULT----------------')
-    print('Estimated W = ',vectorwise_result[0])
-    print('Estimated B = ',vectorwise_result[1])
-    print('Training Time = %f sec' % (vectorwise_result[2]))
-    print('Testing Time  = %f sec' % (vectorwise_result[2]))
-    print('Accuracy for Training Dataset = %.2f%%' % (vectorwise_result[4]))
-    print('Accuracy for Testing Dataset  = %.2f%%' % (vectorwise_result[5]))
+    print('Estimated W = ',result[0])
+    print('Estimated B = ',result[1])
+    print('Training Time = %f sec' % (result[2]))
+    print('Testing Time  = %f sec' % (result[3]))
+    print('Accuracy for Training Dataset = %.2f%%' % (result[4]))
+    print('Accuracy for Testing Dataset  = %.2f%%' % (result[5]))
 
 if __name__ == '__main__':
     main(sys.argv)
