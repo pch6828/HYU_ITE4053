@@ -1,23 +1,32 @@
+import os
 import sys
 import time
 import random
 import numpy as np
 
 def read_dataset(filename):
-    file = open(filename)
+    data = np.load(filename)
+    x = data['x']
+    y = data['y']
+    return x, y
+
+def generate_and_save_dataset(filename, size):
     x = []
     y = []
+    for _ in range(size):
+        temp = np.array([random.uniform(-10, 10), random.uniform(-10, 10)])
+        x.append(temp)
 
-    while True:
-        line = file.readline()
-        if not line:
-            break
-        row = list(map(float, line.split('\t')))
+        if temp.sum() > 0:
+            y.append(1)
+        else:
+            y.append(0)
+    
+    x = np.array(x)
+    y = np.array(y)
 
-        x.append(row[:-1])
-        y.append(row[-1])
+    np.savez(filename, x=x, y=y)
 
-    file.close()
     return x, y
 
 def cross_entropy_loss(y_, y):
@@ -33,12 +42,11 @@ def compare(y_, y):
     return (y == 1 and y_ >= 0.5) or (y == 0 and y_ < 0.5)
 
 def train_and_test(train_x, train_y, test_x, test_y, iteration, alpha, w, b, log_step):
-    train_size = len(train_x)
-    test_size = len(test_x)
-    train_x = np.array(train_x).T
-    train_y = np.array(train_y)
-    test_x = np.array(test_x).T
-    test_y = np.array(test_y)
+    train_size = train_x.shape[0]
+    test_size = test_x.shape[0]
+
+    train_x = train_x.T
+    test_x = test_x.T
 
     start = time.time()
     for step in range(iteration):
@@ -67,7 +75,7 @@ def train_and_test(train_x, train_y, test_x, test_y, iteration, alpha, w, b, log
 
         w = w - alpha*dw
         b -= alpha*db
-        if log_step and (step+1) % 10 == 0:
+        if log_step and (step+1) % 50 == 0:
             print('Iteration #',(step+1))
             print('Now W = ', w)
             print('Now B = ', b)
@@ -85,30 +93,49 @@ def train_and_test(train_x, train_y, test_x, test_y, iteration, alpha, w, b, log
     y_[y_>=0.5] = 1
     y_[y_<0.5] = 0
     train_accuracy = np.sum(y_==train_y)/train_size*100
+    
     start = time.time()
-    y_ = model(w, b, test_x)
+    y_ = []
+    test_x = test_x.T
+    for x in test_x:
+        y_.append(model(w, b, x))
+    y_ = np.array(y_)
     y_[y_>=0.5] = 1
     y_[y_<0.5] = 0
     test_accuracy = np.sum(y_==test_y)/test_size*100
     end = time.time()
     test_time = end-start
+    
     return w, b, training_time, test_time, train_accuracy, test_accuracy
 
-def main(argv):
-    train_filename = argv[1]
-    test_filename = argv[2]
-    k = int(argv[3])
+def main():
+    m = 10000
+    n = 500
+    k = 5000
+
+    train_filename = 'train_2018008395.npz'
+    test_filename = 'test_2018008395.npz'
     
     r1 = random.uniform(-1,1)
     r2 = random.uniform(-1,1)
     r3 = random.uniform(-1,1)
+
     w = np.array([r1, r2])
     b = r3
 
-    train_x, train_y = read_dataset(train_filename)
-    test_x, test_y = read_dataset(test_filename)
+    train_x = None
+    train_y = None
+    test_x = None
+    test_y = None
+
+    if os.path.isfile(train_filename) and os.path.isfile(test_filename):
+        train_x, train_y = read_dataset(train_filename)
+        test_x, test_y = read_dataset(test_filename)
+    else:
+        train_x, train_y = generate_and_save_dataset(train_filename, m)
+        test_x, test_y = generate_and_save_dataset(test_filename, n)
     
-    result = train_and_test(train_x, train_y, test_x, test_y, k, 0.01, w, b, False)
+    result = train_and_test(train_x, train_y, test_x, test_y, k, 10, w, b, False)
     print('----------------RESULT----------------')
     print('Estimated W = ',result[0])
     print('Estimated B = ',result[1])
@@ -118,4 +145,4 @@ def main(argv):
     print('Accuracy for Testing Dataset  = %.2f%%' % (result[5]))
 
 if __name__ == '__main__':
-    main(sys.argv)
+    main()
