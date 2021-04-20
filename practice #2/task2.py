@@ -72,7 +72,8 @@ def train_and_test(train_x, train_y, test_x, test_y, iteration, alpha, w1, b1, w
         train_accuracy = np.sum(y_==train_y)/train_size*100
         
         if log_step:
-            y_ = model(w1, b1, test_x)
+            a1 = model(w1, b1, test_x)
+            y_ = model(w2, b2, np.array([a1]))
             test_cost = -cross_entropy_loss(y_, test_y).sum()/test_size
             
             y_[y_>=0.5] = 1
