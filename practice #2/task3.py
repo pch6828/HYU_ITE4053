@@ -1,3 +1,15 @@
+# Practice #2
+# Task 3 : binary classification using wide 2-layered net (cross-entropy loss)
+# Requirement
+#   1. python 3 (I used python 3.8.2)
+#   2. numpy module (I used numpy 1.18.2)
+# Usage
+#   1. print each step : python task3.py step
+#   2. get final result with zero valued w, b : python task3.py zero
+#   3. get final result with random w, b : python task3.py
+# This program use dataset files named "train_2018008395.npz" and "test_2018008395.npz"
+# If files do not exist, program will generate random fileset and save it as files
+
 import os
 import sys
 import time
@@ -37,9 +49,6 @@ def sigmoid(z):
 
 def model(w, b, x):
     return sigmoid(np.dot(w, x)+b)
-
-def compare(y_, y):
-    return (y == 1 and y_ >= 0.5) or (y == 0 and y_ < 0.5)
 
 def train_and_test(train_x, train_y, test_x, test_y, iteration, alpha, w1, b1, w2, b2, log_step):
     train_size = train_x.shape[0]
@@ -101,7 +110,7 @@ def train_and_test(train_x, train_y, test_x, test_y, iteration, alpha, w1, b1, w
 
     training_time = end-start
     a1 = model(w1, b1.reshape((3,1)), train_x)
-    y_ = model(w2, b2, np.array([a1]))
+    y_ = model(w2, b2, a1)
     y_[y_>=0.5] = 1
     y_[y_<0.5] = 0
     train_accuracy = np.sum(y_==train_y)/train_size*100
@@ -122,20 +131,32 @@ def train_and_test(train_x, train_y, test_x, test_y, iteration, alpha, w1, b1, w
     
     return w1, b1, w2, b2, training_time, test_time, train_accuracy, test_accuracy
 
-def main():
+def main(argv):
     m = 10000
     n = 500
     k = 5000
 
+    mode = None
+    if len(argv)>1:
+        mode = argv[1]
+    
     train_filename = 'train_2018008395.npz'
     test_filename = 'test_2018008395.npz'
     
-    w1 = np.array([[random.uniform(-1,1), random.uniform(-1,1)],
-                   [random.uniform(-1,1), random.uniform(-1,1)],
-                   [random.uniform(-1,1), random.uniform(-1,1)]])
-    b1 = np.array([random.uniform(-1,1), random.uniform(-1,1), random.uniform(-1,1)])
-    w2 = np.array([random.uniform(-1,1), random.uniform(-1,1), random.uniform(-1,1)])
-    b2 = random.uniform(-1,1)
+    w1 = np.array([[random.uniform(-10,10), random.uniform(-10,10)],
+                   [random.uniform(-10,10), random.uniform(-10,10)],
+                   [random.uniform(-10,10), random.uniform(-10,10)]])
+    b1 = np.array([random.uniform(-10,10), random.uniform(-10,10), random.uniform(-10,10)])
+    w2 = np.array([random.uniform(-10,10), random.uniform(-10,10), random.uniform(-10,10)])
+    b2 = random.uniform(-10,10)
+
+    if mode == 'zero':
+        w1 = np.array([[0.0,0.0],
+                       [0.0,0.0],
+                       [0.0,0.0]])
+        b1 = np.array([0.0,0.0,0.0])
+        w2 = np.array([0.0,0.0,0.0])
+        b2 = 0.0
 
     train_x = None
     train_y = None
@@ -149,7 +170,7 @@ def main():
         train_x, train_y = generate_and_save_dataset(train_filename, m)
         test_x, test_y = generate_and_save_dataset(test_filename, n)
     
-    result = train_and_test(train_x, train_y, test_x, test_y, k, 10, w1, b1, w2, b2, False)
+    result = train_and_test(train_x, train_y, test_x, test_y, k, 3, w1, b1, w2, b2, mode=='step')
     print('----------------RESULT----------------')
     print('Estimated W1 = ',result[0])
     print('Estimated B1 = ',result[1])     
@@ -161,4 +182,4 @@ def main():
     print('Accuracy for Testing Dataset  = %.2f%%' % (result[7]))
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv)

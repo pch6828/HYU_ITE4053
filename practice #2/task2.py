@@ -1,3 +1,15 @@
+# Practice #2
+# Task 2 : binary classification using 2-layered net (cross-entropy loss)
+# Requirement
+#   1. python 3 (I used python 3.8.2)
+#   2. numpy module (I used numpy 1.18.2)
+# Usage
+#   1. print each step : python task2.py step
+#   2. get final result with zero valued w, b : python task2.py zero
+#   3. get final result with random w, b : python task2.py
+# This program use dataset files named "train_2018008395.npz" and "test_2018008395.npz"
+# If files do not exist, program will generate random fileset and save it as files
+
 import os
 import sys
 import time
@@ -38,9 +50,6 @@ def sigmoid(z):
 def model(w, b, x):
     return sigmoid(np.dot(w, x)+b)
 
-def compare(y_, y):
-    return (y == 1 and y_ >= 0.5) or (y == 0 and y_ < 0.5)
-
 def train_and_test(train_x, train_y, test_x, test_y, iteration, alpha, w1, b1, w2, b2, log_step):
     train_size = train_x.shape[0]
     test_size = test_x.shape[0]
@@ -56,14 +65,14 @@ def train_and_test(train_x, train_y, test_x, test_y, iteration, alpha, w1, b1, w
         test_accuracy = 0
         
         a1 = model(w1, b1, train_x)
-        y_ = model(w2, b2, np.array([a1]))
+        y_ = model(w2, b2, a1)
         train_cost = -cross_entropy_loss(y_, train_y).sum()/train_size
 
         dz2 = y_ - train_y
         dw2 = np.dot(a1, dz2)/train_size
         db2 = dz2.sum()/train_size
         
-        dz1 = np.dot(w2.T, np.array([dz2]))*(a1*(1-a1))
+        dz1 = np.dot(w2, dz2)*(a1*(1-a1))
         dw1 = np.dot(train_x, dz1)/train_size
         db1 = dz1.sum()/train_size
 
@@ -73,7 +82,7 @@ def train_and_test(train_x, train_y, test_x, test_y, iteration, alpha, w1, b1, w
         
         if log_step:
             a1 = model(w1, b1, test_x)
-            y_ = model(w2, b2, np.array([a1]))
+            y_ = model(w2, b2, a1)
             test_cost = -cross_entropy_loss(y_, test_y).sum()/test_size
             
             y_[y_>=0.5] = 1
@@ -102,7 +111,7 @@ def train_and_test(train_x, train_y, test_x, test_y, iteration, alpha, w1, b1, w
 
     training_time = end-start
     a1 = model(w1, b1, train_x)
-    y_ = model(w2, b2, np.array([a1]))
+    y_ = model(w2, b2, a1)
     y_[y_>=0.5] = 1
     y_[y_<0.5] = 0
     train_accuracy = np.sum(y_==train_y)/train_size*100
@@ -111,7 +120,7 @@ def train_and_test(train_x, train_y, test_x, test_y, iteration, alpha, w1, b1, w
     y_ = []
     test_x = test_x.T
     for x in test_x:
-        y_.append(model(w2, b2, np.array([model(w1, b1, x)])))
+        y_.append(model(w2, b2, model(w1, b1, x)))
         
     y_ = np.array(y_)
     y_[y_>=0.5] = 1
@@ -122,24 +131,34 @@ def train_and_test(train_x, train_y, test_x, test_y, iteration, alpha, w1, b1, w
     
     return w1, b1, w2, b2, training_time, test_time, train_accuracy, test_accuracy
 
-def main():
+def main(argv):
     m = 10000
     n = 500
     k = 5000
 
+    mode = None
+    if len(argv)>1:
+        mode = argv[1]
+    
     train_filename = 'train_2018008395.npz'
     test_filename = 'test_2018008395.npz'
     
-    r1 = random.uniform(-1,1)
-    r2 = random.uniform(-1,1)
-    r3 = random.uniform(-1,1)
-    r4 = random.uniform(-1,1)
-    r5 = random.uniform(-1,1)
+    r1 = random.uniform(-10,10)
+    r2 = random.uniform(-10,10)
+    r3 = random.uniform(-10,10)
+    r4 = random.uniform(-10,10)
+    r5 = random.uniform(-10,10)
     
     w1 = np.array([r1, r2])
     b1 = r3
-    w2 = np.array([r4])
+    w2 = r4
     b2 = r5
+
+    if mode == 'zero':
+        w1 = np.array([0.0,0.0])
+        b1 = 0.0
+        w2 = 0.0
+        b2 = 0.0
 
     train_x = None
     train_y = None
@@ -153,7 +172,7 @@ def main():
         train_x, train_y = generate_and_save_dataset(train_filename, m)
         test_x, test_y = generate_and_save_dataset(test_filename, n)
     
-    result = train_and_test(train_x, train_y, test_x, test_y, k, 10, w1, b1, w2, b2, False)
+    result = train_and_test(train_x, train_y, test_x, test_y, k, 3, w1, b1, w2, b2, mode=='step')
     print('----------------RESULT----------------')
     print('Estimated W1 = ',result[0])
     print('Estimated B1 = ',result[1])     
@@ -165,4 +184,4 @@ def main():
     print('Accuracy for Testing Dataset  = %.2f%%' % (result[7]))
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv)
