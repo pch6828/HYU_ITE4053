@@ -1,5 +1,4 @@
 import os
-import sys
 import time
 import random
 import argparse
@@ -14,7 +13,7 @@ parser.add_argument('--batch', type=int, default=10000, help='batch size')
 parser.add_argument('--loss', type=str, default='BCE', help='loss function')
 parser.add_argument('--optimizer', type=str, default='SGD', help='optimizer')
 
-LOSS = {'BCE':tf.keras.losses.BinaryCrossentropy(from_logits=True),
+LOSS = {'BCE':tf.keras.losses.BinaryCrossentropy(),
         'MSE':tf.keras.losses.MeanSquaredError()}
 OPTIMIZER = {'SGD':tf.keras.optimizers.SGD(learning_rate=0.01),
              'RMSProp':tf.keras.optimizers.RMSprop(learning_rate=0.01), 
@@ -48,13 +47,6 @@ def generate_and_save_dataset(filename, size):
 def main(m, n, k, batch, loss, opt):
     train_filename = 'train_2018008395.npz'
     test_filename = 'test_2018008395.npz'
-    
-    r1 = random.uniform(-10,10)
-    r2 = random.uniform(-10,10)
-    r3 = random.uniform(-10,10)
-
-    w = np.array([r1, r2])
-    b = r3
 
     train_x = None
     train_y = None
