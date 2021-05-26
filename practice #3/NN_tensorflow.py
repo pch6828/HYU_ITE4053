@@ -1,3 +1,16 @@
+# Practice #3
+# Implement Task 3 from Practice #2
+# Requirement
+#   1. python 3 (I used python 3.8.2)
+#   2. numpy module (I used numpy 1.18.2)
+#   3. tensorflow module (I used tensorflow 2.5.0)
+# Usage
+#   0. Brief Explanation of HyperParameter : python NN_tensorflow.py --help
+#   1. Loss Function : BCE / MSE (this program can handle only these inputs)
+#   2. optimizer : SGD / RMSProp, Adam (this program can handle only these inputs)
+# This program use dataset files named "train_2018008395.npz" and "test_2018008395.npz"
+# If files do not exist, program will generate random fileset and save it as files
+
 import os
 import time
 import random
